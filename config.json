@@ -1,13 +1,13 @@
 {
     "DESIGN_NAME": "ram_arbiter",
     "VERILOG_FILES": "dir::rtl/*.sv",
-    "CLOCK_PERIOD":50,
+    "CLOCK_PERIOD": 40,
     "CLOCK_PORT": "clk_i",
     "FP_PDN_SKIPTRIM": true,
     "RUN_POST_GRT_RESIZER_TIMING": true,
     
     "FP_SIZING": "absolute",
-    "DIE_AREA": [0, 0, 1600, 1600],
+    "DIE_AREA": [0, 0, 2000, 2000],
 
     "VDD_NETS": [
         "VPWR"

@@ -1,5 +1,6 @@
 
 `include "ram_defines.svh"
+`timescale 1ns/1ps
 
 // 2KB, 14-bit address
 module ram_arbiter(
@@ -114,46 +115,29 @@ always_comb begin
     // combinational arbitration logic for each ram
     // provides access to ram for either port based on priority
     for (int ram = 0; ram < 2; ram++) begin
-        dffram_we_o[ram]      = 0;
-        dffram_en_o[ram]      = 0;
-        dffram_data_in_o[ram] = 0;
-        dffram_addr_o[ram]    = 0;
-        case ({wb_stb_i[0], wb_stb_i[1]}) 
+        case ({wb_stb_i[0] && wb_addr_i[0][`ADDR_WIDTH-1] == ram[0], wb_stb_i[1] && wb_addr_i[1][`ADDR_WIDTH-1] == ram[0]})
+            2'b11 : begin
+                dffram_we_o[ram]      = wb_we_i[port_priority];
+                dffram_en_o[ram]      = wb_stb_i[port_priority];
+                dffram_data_in_o[ram] = wb_data_i[port_priority];
+                dffram_addr_o[ram]    = wb_addr_i[port_priority][`ADDR_WIDTH-2:0];
+            end
             2'b10 : begin
-                if (wb_addr_i[0][`ADDR_WIDTH-1] == ram[0]) begin
-                    dffram_we_o[ram]      = wb_we_i[0];
-                    dffram_en_o[ram]      = wb_stb_i[0];
-                    dffram_data_in_o[ram] = wb_data_i[0];
-                    dffram_addr_o[ram]    = wb_addr_i[0][`ADDR_WIDTH-2:0];
-                end
+                dffram_we_o[ram]      = wb_we_i[0];
+                dffram_en_o[ram]      = wb_stb_i[0];
+                dffram_data_in_o[ram] = wb_data_i[0];
+                dffram_addr_o[ram]    = wb_addr_i[0][`ADDR_WIDTH-2:0];
             end
             2'b01 : begin
-                if (wb_addr_i[1][`ADDR_WIDTH-1] == ram[0]) begin
-                    dffram_we_o[ram]      = wb_we_i[1];
-                    dffram_en_o[ram]      = wb_stb_i[1];
-                    dffram_data_in_o[ram] = wb_data_i[1];
-                    dffram_addr_o[ram]    = wb_addr_i[1][`ADDR_WIDTH-2:0];
-                end
-            end
-            2'b11 : begin
-                if (wb_addr_i[0][`ADDR_WIDTH-1] == ram[0] && wb_addr_i[1][`ADDR_WIDTH-1] == ram[0]) begin
-                    dffram_we_o[ram]      = wb_we_i[port_priority];
-                    dffram_en_o[ram]      = wb_stb_i[port_priority];
-                    dffram_data_in_o[ram] = wb_data_i[port_priority];
-                    dffram_addr_o[ram]    = wb_addr_i[port_priority][`ADDR_WIDTH-2:0];
-                end else if (wb_addr_i[0][`ADDR_WIDTH-1] == ram[0]) begin
-                    dffram_we_o[ram]      = wb_we_i[0];
-                    dffram_en_o[ram]      = wb_stb_i[0];
-                    dffram_data_in_o[ram] = wb_data_i[0];
-                    dffram_addr_o[ram]    = wb_addr_i[0][`ADDR_WIDTH-2:0];
-                end else if (wb_addr_i[1][`ADDR_WIDTH-1] == ram[0]) begin
-                    dffram_we_o[ram]      = wb_we_i[1];
-                    dffram_en_o[ram]      = wb_stb_i[1];
-                    dffram_data_in_o[ram] = wb_data_i[1];
-                    dffram_addr_o[ram]    = wb_addr_i[1][`ADDR_WIDTH-2:0];
-                end
-            end
-            default : begin
+                dffram_we_o[ram]      = wb_we_i[1];
+                dffram_en_o[ram]      = wb_stb_i[1];
+                dffram_data_in_o[ram] = wb_data_i[1];
+                dffram_addr_o[ram]    = wb_addr_i[1][`ADDR_WIDTH-2:0];
+            end default begin 
+                dffram_we_o[ram]      = 0;
+                dffram_en_o[ram]      = 0;
+                dffram_data_in_o[ram] = 0;
+                dffram_addr_o[ram]    = 0;
             end
         endcase
     end
